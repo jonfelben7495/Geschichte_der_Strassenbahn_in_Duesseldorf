@@ -1,3 +1,59 @@
+body {
+	font-family: "Helvetica", Helvetica, serif;
+	overflow: hidden;
+}
+
+.slideContainer {
+	width: 72%;
+}
+
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 50%; 
+  height: 15px;
+  border-radius: 5px; 
+  background: #d3d3d3;
+  outline: none;
+  opacity: 0.8;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+}
+
+.slider:hover {
+  opacity: 1;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%; 
+  background: #336699;
+  cursor: pointer;
+}
+
+.slider::-webkit-slider-thumb:active {
+  -moz-box-shadow:    inset 0 0 5px #000000;
+   -webkit-box-shadow: inset 0 0 5px #000000;
+   box-shadow:         inset 0 0 5px #000000;
+}
+
+.slider::-moz-range-thumb {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: #336699;
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb:active {
+  -moz-box-shadow:    inset 0 0 5px #000000;
+   -webkit-box-shadow: inset 0 0 5px #000000;
+   box-shadow:         inset 0 0 5px #000000;
+}
+
 .legend {
     line-height: 18px;
     color: #555;
@@ -7,13 +63,205 @@
     height: 18px;
     float: left;
     margin-right: 8px;
-    opacity: 0.7;
 }
 
 .info {
     padding: 6px 8px;
     background: white;
-    background: rgba(255,255,255,0.8);
+    background: rgb(255,255,255);
     box-shadow: 0 0 15px rgba(0,0,0,0.2);
     border-radius: 5px;
+}
+
+#leftSide {
+	flex: 60%;
+}
+
+#rightSide {
+	flex: 40%;
+	overflow: auto;
+	height: 80vh;
+}
+
+#tutorial {
+	padding-left: 1%;
+	line-height: 1.5;
+}
+
+#infoDiv {
+	padding-left: 1%;
+	display: none;
+}
+
+#map {
+	height: 75vh;
+}
+
+
+#infoTable {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+tr:nth-child(odd) {
+	background-color: #f2f2f2;
+	padding-top: 2%;
+	padding-bottom: 2%;
+}
+
+td {
+	padding-top: 2%;
+	padding-bottom: 2%;
+}
+
+#lineNameKey {
+	width: 15%;
+}
+
+#lineNameValue {
+	width: 35%;
+	text-align: right;
+	padding-right: 4%;
+}
+
+#lineLengthKey {
+	width: 25%;
+}
+
+#lineLengthValue {
+	width: 25%;
+	text-align: right;
+}
+
+#station1Key {
+	width: 25%;
+}
+
+#station1Value {
+	width: 25%;
+	text-align: right;
+	padding-right: 4%;
+}
+
+#activeFromToKey {
+}
+
+#activeFromToValue {
+	text-align: right;
+}
+
+#station2Key {
+	width: 25%;
+}
+
+#station2Value {
+	width: 25%;
+	text-align: right;
+	padding-right: 4%;
+}
+
+#operatorKey {
+	width: 25%;
+}
+
+#operatorValue {
+	width: 25%;
+	text-align: right;
+}
+
+.linePicture {
+	width: 180px;
+	float: left;
+	margin: 5px;
+  	border: 1px solid #ccc;
+}
+
+.lineImg {
+	width: 100%;
+	height: auto;
+	cursor: pointer;
+}
+
+#imageDiv {
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.imageDescription {
+	padding: 15px;
+	text-align: center;
+}
+
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 9999; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 5% auto; /* 15% from the top and centered */
+  padding: 20px;
+  border: 1px solid #888;/* Could be more or less, depending on screen size */
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+#modalImageContainer {
+	max-height: 80vh;
+}
+
+#modalImage {
+	max-height: 80vh;
+}
+
+.button {
+	display: inline;
+}
+
+.button input {
+	cursor:pointer;
+    width: 20px;
+    height: 20px;
+    border: none;
+}
+
+#playButton input {
+	background: url("playButton.png");
+}
+
+#stopButton input {
+	background: url("pauseButton.png");
+}
+
+#backwardButton input {
+	background: url("backwardButton.png");
+}
+
+#forwardButton input {
+	background: url("forwardButton.png");
+}
+
+#currentYear {
+	padding-left: 47%;
+	font-size: 20px;
 }

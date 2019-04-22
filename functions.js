@@ -18,44 +18,34 @@ L.tileLayer('https://api.mapbox.com/styles/v1/drjones7495/cjhbwihgi0kbc2smken45c
 mymap.setMaxBounds(bounds);
 
 L.geoJSON(stadtgrenze, {
-    style: {"color": "#000", "fillOpacity": "0"}
+    style: {"color": "#000", "fillOpacity": "0", "interactive": false}
 }).addTo(mymap);
 
-var line = L.featureGroup();
+var allLines = L.featureGroup();
 
 var usedSectionIDs = [];
 
-var strassenbahnIcon = L.icon({
-    iconUrl: 'strassenbahn.png',
-    iconSize: [mymap.getZoom()*1.1, mymap.getZoom()*1.1],
-});
+var usedFeatures, numberOfLines, lengthAllLines = 0;
 
-var stadtbahnIcon = L.icon({
-    iconUrl: 'stadtbahn.png',
-    iconSize: [mymap.getZoom()*1.1, mymap.getZoom()*1.1],
-});
-
-var usedFeatures, usedGeometries;
+var timer = null, interval = 1000, timerIsActive = false;
 
 var zIndex1Lines = [];
 var zIndex2Lines = [];
 var zIndex3Lines = [];
 
-function getIconSize() {
-    var zoomLev = mymap.getZoom();
-    strassenbahnIcon = L.icon({
-        iconUrl: 'strassenbahn.png',
-        iconSize: [zoomLev, zoomLev],
-    });
-    stadtbahnIcon = L.icon({
-        iconUrl: 'stadtbahn.png',
-        iconSize: [zoomLev, zoomLev],
-    });
-}
+$(".slider").on('input', function(){
+    output.innerHTML = this.value;
+    drawLines();
+});
 
-slider.addEventListener("input", function(){output.innerHTML = this.value}, false);
-slider.addEventListener("input", function(){drawLines(); }, false);
-mymap.on("zoom", function(){drawLines(); });
+$(".slider").click(function(){
+    if (timerIsActive) {
+        clearInterval(timer);
+        timer = null;
+        $("#stopButton").attr("id","playButton");
+        initPlayButton();
+    }
+})
 
 drawLines();
 
@@ -152,10 +142,63 @@ function getCoordsFromGeometryArray(array) {
     return coords;
 }
 
-function addPopupToFeature(feature, layer) {
+function addOnClickToFeature(feature, layer) {
     if (feature.properties && feature.properties.lineName && feature.properties.station1 && feature.properties.station2) {
-        layer.bindPopup(feature.properties.lineName + ": " + feature.properties.station1 + " &harr; " + feature.properties.station2);
+        layer.on("click",  function() {changeContentSection(feature);});
     }
+}
+
+function changeContentSection(feature) {
+    $("#infoDiv").css("display", "block")
+    changeTitleDiv(feature);
+    changeInfoTable(feature);
+    changeImgDiv(feature);
+}
+
+function changeTitleDiv(feature) {
+    $("#titleDiv h2").text(feature.properties.lineName + ": " + feature.properties.station1 + " ↔ " + feature.properties.station2);
+}
+
+function changeInfoTable(feature) {
+    $("#lineNameValue").text(feature.properties.lineType);
+    $("#lineLengthValue").text(turf.length(feature, {units: 'kilometers'}).toFixed(2) + " km");
+    $("#station1Value").text(feature.properties.station1);
+    $("#station2Value").text(feature.properties.station2);
+    $("#activeFromToValue").text(feature.properties.startYear + " und " + feature.properties.endYear);
+    $("#operatorValue").text(feature.properties.operator);
+}
+
+function changeImgDiv(feature) {
+    destroyImgDiv();
+
+    var imgArray = [];
+    var imgDiv = document.getElementById("imageDiv");
+
+    imgArray = getImagesForFeature(feature, images);
+
+    for (var i = 0; i < imgArray.length; i++) {
+        var imgPath = "'" + imgArray[i].imgPath + "'";
+        var imgID = "'" + imgArray[i].imgID + "'";
+        imgDiv.innerHTML +=
+            '<div class="linePicture"><img class="lineImg" onClick="openInLightBox(' + imgID + ')" src=' + imgArray[i].imgPath + '><div class="imageDescription">' + imgArray[i].imgDescription + ' (' +  imgArray[i].imgYear + ')</div>';
+    }
+
+}
+
+function destroyImgDiv() {
+    $("#imageDiv").empty();
+}
+
+function getImagesForFeature(feature, images) {
+    var imgArray = [];
+
+    for (var i = 0; i < images.length; i++) {
+        if (images[i].usedForLines.includes(feature.properties.lineID)) {
+            imgArray.push(images[i]);
+        }
+    } 
+
+    return imgArray;
 }
 
 function checkYear(feature) {
@@ -169,17 +212,15 @@ function checkYear(feature) {
     }
 }
 
+
 function drawLines() {
 
-    if (line != undefined) {
-        line.clearLayers();
+    if (allLines != undefined) {
+        allLines.clearLayers();
     };
     destroyLegend();
 
     usedFeatures = getUsedFeaturesFromGeoJSON(lines);
-    usedGeometries = getGeometriesFromUsedFeatures(usedFeatures);
-
-    console.log(usedFeatures);
 
     zIndex1Lines = [];
     zIndex2Lines = [];
@@ -189,42 +230,50 @@ function drawLines() {
         drawGeoJSONFeature(usedFeatures[i]);
     }
 
+    console.log(lengthAllLines);
+
     bringFeatureGroupsToFront(zIndex1Lines);
     bringFeatureGroupsToFront(zIndex2Lines);
     bringFeatureGroupsToFront(zIndex3Lines);
 
     usedSectionIDs = [];
 
-    line.addTo(mymap);
+    allLines.addTo(mymap);
     createLegend(usedFeatures);
+    setLengthOfLines();
+    setNumberOfLines(usedFeatures.length);
+
+    usedFeatures = null;
 }
 
 function drawGeoJSONFeature(feature) {
     var featureGroup = L.featureGroup();
     var geometryArray = getAllGeometriesFromFeature(feature);
+    debugger;
+    lengthAllLines += turf.length(feature, {units: 'kilometers'});
 
     for(var i = 0; i < geometryArray.length; i++) {
         if(!usedSectionIDs.includes(geometryArray[i].sectionID)) {
             usedSectionIDs.push(geometryArray[i].sectionID);
-            var coords = turf.getCoords(geometryArray[i]);
-            var swappedCoords = lnglatTolatlng(coords);
-            var layer = L.polyline(swappedCoords, {color: feature.properties.lineColor, weight: 4, smoothFactor: 1, className: feature.properties.lineName}).addTo(featureGroup);
+            var coords = turf.getCoords(turf.flip(geometryArray[i]));
+            var layer = L.polyline(coords, {color: feature.properties.lineColor, weight: 4, smoothFactor: 1, className: feature.properties.lineName}).addTo(featureGroup);
             checkForUndergroundSection(geometryArray[i].underground, layer);
-            addPopupToFeature(feature, layer);
+            checkForHorseTram(feature, layer);
+            addOnClickToFeature(feature, layer);
             layer.addTo(featureGroup);
         } else {
             usedSectionIDs.push(geometryArray[i].sectionID);
-            var coords = turf.getCoords(geometryArray[i]);
-            var swappedCoords = lnglatTolatlng(coords);
+            var coords = turf.getCoords(turf.flip(geometryArray[i]));
             var idInArray = occurencesInArray(geometryArray[i].sectionID, usedSectionIDs);
-            var layer = L.polyline(swappedCoords, {color: feature.properties.lineColor, weight: 4, smoothFactor: 1}).addTo(featureGroup);
+            var layer = L.polyline(coords, {color: feature.properties.lineColor, weight: 4, smoothFactor: 1, className: feature.properties.lineName}).addTo(featureGroup);
             sectionInMultipleLines(idInArray, layer);
             checkForUndergroundSection(geometryArray[i].underground, layer);
-            addPopupToFeature(feature, layer);
+            checkForHorseTram(feature, layer);
+            addOnClickToFeature(feature, layer);
             layer.addTo(featureGroup);
         }
     }
-    featureGroup.addTo(line);
+    featureGroup.addTo(allLines);
     sortIntoZIndexGroup(featureGroup, feature);
 }
 
@@ -285,6 +334,12 @@ function checkForUndergroundSection(undergroundProperty, polyline) {
     }
 }
 
+function checkForHorseTram(feature, polyline) {
+    if(feature.properties.lineType == "Pferdebahn") {
+        polyline.setStyle({dashArray: 6});
+    }
+}
+
 function lnglatTolatlng(array) {
     var swappedArray = [];
     for(var i = 0; i < array.length; i++) {
@@ -315,12 +370,57 @@ function createLegend(usedFeatures) {
     legend.onAdd = function (map) {
 
     var div = L.DomUtil.create('div', 'info legend');
+    div.innerHTML += "<h3>Legende</h3>";
 
-    // loop through our density intervals and generate a label with a colored square for each interval
-    for (var i = 0; i < usedFeatures.length; i++) {
+    var intLines = [];
+    var stringLines = [];
+    var tramBool = false;
+    var undBool = false;
+    var horseBool = false;
+
+    for (var i=0; i < usedFeatures.length; i++) {
+        if (usedFeatures[i].properties.lineType == "Straßenbahn") {
+            tramBool = true;
+        } else if (usedFeatures[i].properties.lineType == "Pferdebahn") {
+            horseBool = true;
+        } else if (usedFeatures[i].properties.lineType == "Stadtbahn (mit U-Strecke)") {
+            undBool = true;
+        }
+    }
+
+    divideIntLinesAndStringLines(usedFeatures, intLines, stringLines);
+
+    intLines.sort(function(a, b){return a.properties.lineName - b.properties.lineName});
+    stringLines.sort(function(a, b) {
+        if ( a.properties.lineName < b.properties.lineName){
+            return -1;
+        }
+        if ( a.properties.lineName> b.properties.lineName ){
+            return 1;
+        }
+        return 0;
+    });
+
+    for (var i = 0; i < intLines.length; i++) {
         div.innerHTML +=
-            '<i style="background:' + usedFeatures[i].properties.lineColor + '"></i> ' +
-            usedFeatures[i].properties.lineName + "<br>";
+            '<i style="background:' + intLines[i].properties.lineColor + '"></i> ' +
+            intLines[i].properties.lineName + "<br>";
+    }
+
+    for (var i = 0; i < stringLines.length; i++) {
+        div.innerHTML +=
+            '<i style="background:' + stringLines[i].properties.lineColor + '"></i> ' +
+            stringLines[i].properties.lineName + "<br>";
+    }
+
+    div.innerHTML += "<br><br>";
+
+    if (horseBool) {
+        div.innerHTML += '<i><svg width="18px" height="18px"><rect width="18px" height="3px" y="7.5" style="fill: rgb(50,50,50);""></svg></i>Elektr. Straßenbahn<br>';
+        div.innerHTML += '<i><svg width="18px" height="18px"><rect width="4" height="3px" y="7.5" style="fill: rgb(50,50,50);" /><rect width="4" height="3px" x="7" y="7.5" style="fill: rgb(50,50,50);" /><rect width="4" height="3px" x="14" y="7.5" style="fill: rgb(50,50,50);" /></svg></i>Pferdebahn<br>'
+    } else if (tramBool && undBool) {
+        div.innerHTML += '<i><svg width="18px" height="18px"><rect width="18px" height="3px" y="7.5" style="fill: rgb(50,50,50);""></svg></i>Oberirdisch<br>';
+        div.innerHTML += '<i><svg width="18px" height="18px"><rect width="4" height="3px" y="7.5" style="fill: rgb(50,50,50);" /><rect width="4" height="3px" x="7" y="7.5" style="fill: rgb(50,50,50);" /><rect width="4" height="3px" x="14" y="7.5" style="fill: rgb(50,50,50);" /></svg></i>Unterirdisch<br>'
     }
 
     return div;
@@ -331,4 +431,152 @@ function createLegend(usedFeatures) {
 
 function destroyLegend() {
     $(".legend").remove();
+}
+
+function divideIntLinesAndStringLines(usedLines, intLines, stringLines) {
+    for (var i = 0; i < usedLines.length; i++) {
+        if (/\d/.test(usedLines[i].properties.lineName.charAt(0)) == true) {
+            var int = usedLines[i];
+            parseInt(int.properties.lineName);
+            intLines.push(int);
+        } else {
+            stringLines.push(usedLines[i]);
+        }
+    }
+}
+
+function sortUsedLines(usedLines) {
+    usedLines.sort();
+}
+
+function setNumberOfLines(lineArray) {
+    lineNumber.innerHTML = lineArray;
+}
+
+function setLengthOfLines() {
+    console.log(lengthAllLines);
+    lineLengthSum.innerHTML = lengthAllLines.toFixed(2) + " km";
+    lengthAllLines = 0;
+}
+
+function getImgFromID(id) {
+    var img;
+
+    for (var i = 0; i < images.length; i++) {
+        if (images[i].imgID == id) {
+            img = images[i];
+        }
+    }
+
+    return img;
+}
+
+function openInLightBox(imgID) {
+    $("#imgInfo").text("")
+    var img = getImgFromID(imgID);
+    var modalImageContainer = document.getElementById("modalImageContainer");
+    modalImageContainer.innerHTML += '<img id="modalImage" src=' + img.imgPath + '>';
+    $(".modal").css("display", "block");
+    var modalImage = document.getElementById('modalImage'); 
+    var width = modalImage.clientWidth;
+    var height = modalImage.clientHeight;
+    $(".modal-content").css("width", width);
+    $(".modal-content").css("height", height + 32);
+    $("#imgInfo").text(img.imgDescription + " (" + img.imgYear + "). Quelle: " + img.imgSourceAuthor + ". " + img.imgSource + ", " + img.imgSourcePage + ". Urheber: " + img.imgCredit + ".");
+}
+
+$(".close").click(function() {
+    $(".modal").css("display", "none");
+    $("#modalImage").remove();
+})
+
+window.onclick = function(event) {
+  if (event.target == document.getElementById('modal')) {
+    document.getElementById('modal').style.display = "none";
+    $("#modalImage").remove();
+  }
+}
+
+$("#backwardButton").click(function() {
+    if (timerIsActive) {
+        clearInterval(timer);
+        timer = null;
+        $("#stopButton").attr("id","playButton");
+        initPlayButton();
+    }
+    var value = parseInt($(".slider").val());
+    value -= 1;
+    $(".slider").val(value);
+    $(".slider").trigger("input");
+})
+
+$("#forwardButton").click(function() {
+    if (timerIsActive) {
+        clearInterval(timer);
+        timer = null;
+        $("#stopButton").attr("id","playButton");
+        initPlayButton();
+    }
+    var value = parseInt($(".slider").val());
+    value += 1;
+    $(".slider").val(value);
+    $(".slider").trigger("input");
+})
+
+$("#playButton").click(function() {
+    var value = parseInt($(".slider").val());
+    var max = $(".slider").attr("max");
+    if (timer !== null || value >= max) return;
+    timerIsActive = true;
+    $(this).attr("id","stopButton");
+    initStopButton();
+    if (value < max) {
+        timer = setInterval(function () {
+            if ($(".slider").val() == max) {
+                clearInterval(timer);
+                timer = null;
+                $("#stopButton").attr("id","playButton");
+                initPlayButton();
+            } else {
+            value += 1;
+            $(".slider").val(value);
+            $(".slider").trigger("input");
+            }   
+        }, interval); 
+    }
+})
+
+function initStopButton() {
+    $("#stopButton").click(function() {
+        $(this).attr("id","playButton");
+        initPlayButton();
+        timerIsActive = false;
+        clearInterval(timer);
+        timer = null
+    });
+}
+
+function initPlayButton() {
+    $("#playButton").click(function() {
+    var value = parseInt($(".slider").val());
+    var max = $(".slider").attr("max");
+    if (timer !== null || value >= max) return;
+    timerIsActive = true;
+    $(this).attr("id","stopButton");
+    initStopButton();
+    if (value < max) {
+        timer = setInterval(function () {
+            if ($(".slider").val() == max) {
+                clearInterval(timer);
+                timer = null;
+                $("#stopButton").attr("id","playButton");
+                initPlayButton();
+            } else {
+            value += 1;
+            $(".slider").val(value);
+            $(".slider").trigger("input");
+            }   
+        }, interval); 
+    }
+})
 }
