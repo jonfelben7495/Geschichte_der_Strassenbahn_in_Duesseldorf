@@ -2430,10 +2430,10 @@ var lines = [
 		{
 			"type": "Feature",
 			"properties": {
-				"lineName": "Bergisch-Märkischer Bahnhof - Dreieck",
+				"lineName": "Graf-Adolf-Platz - Dreieck",
 				"lineID": "l453",
 				"station1": "Dreieck",
-				"station2": "Bergisch-Märkischer Bahnhof",
+				"station2": "Graf-Adolf-Platz",
 				"startYear": "1894",
 				"endYear": "1896",
 				"lineColor": "#6600ff",
@@ -2463,10 +2463,10 @@ var lines = [
 		{
 			"type": "Feature",
 			"properties": {
-				"lineName": "Bergisch-Märkischer Bahnhof - Derendorfer Markt",
+				"lineName": "Graf-Adolf-Platz - Derendorfer Markt",
 				"lineID": "l454",
 				"station1": "Derendorfer Markt",
-				"station2": "Bergisch-Märkischer Bahnhof",
+				"station2": "Graf-Adolf-Platz",
 				"startYear": "1896",
 				"endYear": "1900",
 				"lineColor": "#6600ff",
@@ -2805,7 +2805,8 @@ var lines = [
 					s457,
 					s458,
 					s459,
-					s461
+					s460,
+					s117
 				]
 			}
 		},
@@ -2874,7 +2875,8 @@ var lines = [
 					s457,
 					s458,
 					s459,
-					s461
+					s460,
+					s117
 				]
 			}
 		},
@@ -2940,7 +2942,8 @@ var lines = [
 					s014b,
 					s014c,
 					s459,
-					s461
+					s460,
+					s117
 				]
 			}
 		},
@@ -3024,7 +3027,8 @@ var lines = [
 					s014b,
 					s014c,
 					s459,
-					s461
+					s460,
+					s117
 				]
 			}
 		},
@@ -3182,7 +3186,8 @@ var lines = [
 					s014b,
 					s014c,
 					s459,
-					s461
+					s460,
+					s117
 				]
 			}
 		},
@@ -10260,7 +10265,8 @@ var lines = [
 					s457,
 					s458,
 					s459,
-					s461
+					s460,
+					s117
 				]
 			}
 		},
@@ -16747,7 +16753,8 @@ var lines = [
 					s457,
 					s458,
 					s459,
-					s461
+					s460,
+					s117
 				]
 			}
 		},
@@ -16800,7 +16807,8 @@ var lines = [
 					s014b,
 					s014c,
 					s459,
-					s461,
+					s460,
+					s117
 				]
 			}
 		},
@@ -16853,7 +16861,8 @@ var lines = [
 					s014b,
 					s014c,
 					s459,
-					s461,
+					s460,
+					s117
 				]
 			}
 		},
@@ -23414,7 +23423,8 @@ var lines = [
 					s014b,
 					s014c,
 					s459,
-					s461
+					s460,
+					s117
 				]
 			}
 		},
@@ -23503,7 +23513,8 @@ var lines = [
 					s014b,
 					s014c,
 					s459,
-					s461
+					s460,
+					s117
 				]
 			}
 		},
@@ -23595,7 +23606,8 @@ var lines = [
 					s014b,
 					s014c,
 					s459,
-					s461
+					s460,
+					s117
 				]
 			}
 		},
@@ -23779,7 +23791,8 @@ var lines = [
 					s014b,
 					s014c,
 					s459,
-					s461
+					s460,
+					s117
 				]
 			}
 		},
@@ -25715,7 +25728,8 @@ var lines = [
 					s457,
 					s458,
 					s459,
-					s461
+					s460,
+					s117
 				]
 			}
 		},
@@ -25773,7 +25787,8 @@ var lines = [
 					s457,
 					s458,
 					s459,
-					s461
+					s460,
+					s117
 				]
 			}
 		},
@@ -25829,7 +25844,8 @@ var lines = [
 					s457,
 					s458,
 					s459,
-					s461
+					s460,
+					s117
 				]
 			}
 		},
